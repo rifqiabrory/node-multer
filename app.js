@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const multer = require("multer");
+const formidable = require("formidable");
 const fs = require("fs");
 const port = 5000;
 
@@ -50,6 +51,7 @@ app.get("/", (req, res) => {
   res.render("index");
 });
 
+// example form-data using multer
 app.post("/upload", (req, res) => {
   upload(req, res, (err) => {
     if (err) {
@@ -74,6 +76,22 @@ app.post("/upload", (req, res) => {
         });
       }
     }
+  });
+});
+
+// example form-data using formidable
+app.post("/create", (req, res) => {
+  const form = new formidable.IncomingForm();
+  form.parse(req, function (err, fields, files) {
+    var oldPath = files.profilePic.path;
+    var newPath =
+      path.join(__dirname, "./public/uploads") + "/" + files.profilePic.name;
+
+    var rawData = fs.readFileSync(oldPath);
+    fs.writeFile(newPath, rawData, function (err) {
+      if (err) console.log(err);
+      return res.send("Successfully uploaded");
+    });
   });
 });
 
