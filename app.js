@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const path = require("path");
 const multer = require("multer");
-const ejs = require("ejs");
+const fs = require("fs");
 const port = 5000;
 
 // Multer storage
@@ -25,7 +25,12 @@ const upload = multer({
   fileFilter: function (req, file, cb) {
     checkFileType(file, cb);
   },
-}).single("image");
+}).fields([
+  { name: "firstName", maxCount: 1 },
+  { name: "lastName", maxCount: 2 },
+  { name: "email", maxCount: 3 },
+  { name: "image", maxCount: 4 },
+]);
 
 // init app
 const app = express();
@@ -52,14 +57,20 @@ app.post("/upload", (req, res) => {
         msg: err,
       });
     } else {
-      if (req.file == undefined) {
+      let body = req.body;
+      let image = req.files.image[0];
+      if (image == undefined) {
         res.render("index", {
           msg: "MulterError: No file selected",
         });
       } else {
+        fs.writeFileSync("./public/uploads/data.json", JSON.stringify(body));
         res.render("index", {
           msg: "File Uploaded",
-          file: `uploads/${req.file.filename}`,
+          file: `uploads/${image.filename}`,
+          firstName: body.firstName,
+          lastName: body.lastName,
+          email: body.email,
         });
       }
     }
